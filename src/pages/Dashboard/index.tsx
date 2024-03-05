@@ -1,9 +1,13 @@
+// Components
+import { Container } from '../../components/container';
+// Layout
+import { DashboardHeader } from '../../layout/painelDashboard';
 export function Dashboard() {
     return (
       <>
-        <div>
-          <h1>Page Dashboard</h1>
-        </div>
+        <Container>
+          <DashboardHeader />
+        </Container>
       </>
     )
 }
