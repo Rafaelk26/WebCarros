@@ -19,9 +19,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
     km: z.string().nonempty('Km do veículo é obrigatório!'),
     price: z.string().nonempty('Preço do veículo é obrigatório!'),
     city: z.string().nonempty('Cidade do veículo é obrigatório!'),
-    whatsapp: z.string().min(1, 'O Telefone é obrigatório!').refine((value)=> /^(\d{10, 11})$/.test(value), {
-      message: 'Número de telefone inválido!'
-    }),
+    whatsapp: z.string().min(12, 'O Telefone é obrigatório!'),
     description: z.string().nonempty('Descrição do veículo é obrigatório!')
   })
 
@@ -45,9 +43,12 @@ export function New() {
 
     return (
       <>
+        {/* Alinhamento */}
         <Container>
+          {/* Layout Header Dashboard */}
           <DashboardHeader />
           <div className='w-full bg-white p-3 rounded-lg flex flex-col sm:flex-row item-center gap-2 mt-2'>
+            {/* Enviar arquivo */}
             <button className='border-2 w-48 rounded-lg flex items-center justify-center cursor-pointer border-gray-600 h-32 md:w-48'>
               <div className='absolute cursor-pointer'>
                <FiUpload size={30} color='#000' />
@@ -59,8 +60,112 @@ export function New() {
           </div>
 
           <div className='w-full bg-white p-3 rounded-lg flex flex-col sm:flex-row item-center gap-2 mt-4'>
+            {/* Formulário */}
             <form className='w-full' onSubmit={handleSubmit(onSubmit)}>
+              {/* Input nome do carro */}
+              <div className="mb-3">
+                <p className='mb-2 font-medium'>Nome do Carro</p>
+                <Input 
+                type='text'
+                placeholder='Ex: Chevrolet Onix'
+                register={register}
+                name='name'
+                error={errors.name?.message}
+                />  
+              </div>
+              {/* Input modelo do carro */}
+              <div className="mb-3">
+                <p className='mb-2 font-medium'>Modelo</p>
+                <Input 
+                type='text'
+                placeholder='Ex: 1.0 Flex Plus Manual'
+                register={register}
+                name='model'
+                error={errors.model?.message}
+                />  
+              </div>
+              {/* Div ano/km do veículo */}
+              <div className='flex flex-row w-full mb-3 items-center gap-4'>
+                {/* Input ano do veículo */}
+                <div className='w-full'>
+                  <p className='mb-2 font-medium'>Ano</p>
+                  <Input 
+                  type='text'
+                  placeholder='Ex: 2018/2019'
+                  register={register}
+                  name='year'
+                  error={errors.year?.message}
+                  />  
+                </div>
+                {/* Input km do veículo */}
+                <div className='w-full'>
+                  <p className='mb-2 font-medium'>Km's</p>
+                  <Input 
+                  type='text'
+                  placeholder='Ex: 52.000'
+                  register={register}
+                  name='km'
+                  error={errors.km?.message}
+                  />  
+                </div>
+              </div>
               
+              {/* Div whatsapp/cidade do veículo */}
+              <div className='flex flex-row w-full mb-3 items-center gap-4'>
+                {/* Input whatsapp do proprietário */}
+                <div className='w-full'>
+                  <p className='mb-2 font-medium'>Whatsapp</p>
+                  <Input 
+                  type='text'
+                  placeholder='Ex: 012900001111'
+                  register={register}
+                  name='whatsapp'
+                  error={errors.whatsapp?.message}
+                  />  
+                </div>
+                {/* Input cidade do veículo */}
+                <div className='w-full'>
+                  <p className='mb-2 font-medium'>Cidade</p>
+                  <Input 
+                  type='text'
+                  placeholder='Ex: São José dos Campos - SP'
+                  register={register}
+                  name='city'
+                  error={errors.city?.message}
+                  />  
+                </div>
+              </div>
+              {/* Input de preço */}
+              <div className="mb-3">
+                <p className='mb-2 font-medium'>Preço</p>
+                <Input 
+                type='text'
+                placeholder='Ex: 45.000'
+                register={register}
+                name='price'
+                error={errors.price?.message}
+                />  
+              </div>
+
+              {/* Campo de descrição */}
+              <div className="mb-3">
+                <p className='mb-2 font-medium'>Descrição</p>
+                <textarea
+                className='border-2 w-full rounded-md h-24 px-2 hover:border-red-600 transition-all'
+                {...register("description")}
+                name='description'
+                id='description'
+                placeholder='Ex: Visite a descrição completa do meu veículo'
+                /> 
+                {errors.description && <p className='mb-1 text-red-500'>{errors.description?.message}</p>}
+              </div>
+
+              <button
+              type='submit'
+              className='w-full rounded-md bg-zinc-900 text-white font-medium h-10'
+              >
+                Cadastrar
+              </button>
             </form>
           </div>
         </Container>
