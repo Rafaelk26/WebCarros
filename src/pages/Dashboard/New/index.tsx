@@ -1,15 +1,20 @@
 // Components
 import { Container } from '../../../components/container';
 import { Input } from '../../../components/input';
+import { AuthContext } from '../../../context/authContext';
+import { storage, db } from '../../../services/index';
 // Layout
 import { DashboardHeader } from '../../../layout/painelDashboard';
 // Icons 
-import { FiUpload } from 'react-icons/fi';
+import { FiUpload, FiTrash } from 'react-icons/fi';
 // Import from development;
+import { ChangeEvent, useState,useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-
+import { v4 as uuidV4 } from 'uuid';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
+import { addDoc, collection } from 'firebase/firestore'; 
 
   // O schema é um modelo de formulário a ser seguido, nele, será requisitado todas as propriedades do objeto!
   const schema = z.object({
@@ -26,7 +31,17 @@ import { zodResolver } from '@hookform/resolvers/zod';
   // Tipamos para ele seguir o nosso schema de acordo com as necessidades de nossos form
   type FormData = z.infer<typeof schema>
 
+  interface imageProps{
+    uid: string;
+    name: string;
+    previewURL: string;
+    url: string;
+  }
 export function New() {
+
+    const { user } = useContext(AuthContext);
+    const [image, setImage] = useState<imageProps[]>([]);
+
     // register para registrar um item
     // handleSubmit para enviar os dados do formulário
     // formState para resetar, e pegar o erro caso ocorra.
@@ -38,7 +53,96 @@ export function New() {
     // Essa função será executada pelo nosso handleSubmit como parâmetro
     // Pode-se receber todas as propriedades do nosso 'schema'
     function onSubmit(data: FormData){
-      console.log(data)
+
+      if(image.length === 0){
+        alert('Insira uma imagem deste veículo!');
+        return;
+      }
+
+      const carListenImages = image.map(car => {
+        return{
+          uid: car.uid,
+          name: car.name,
+          url: car.url
+        }
+      })
+
+      addDoc(collection(db, "cars"), {
+        name: data.name,
+        model: data.model,
+        year: data.year,
+        city: data.city,
+        price: data.price,
+        km: data.km,
+        whatsapp: data.whatsapp,
+        description: data.description,
+        created: new Date(),
+        uidUser: user?.uid,
+        owner: user?.name,
+        email: user?.email,
+        carImages: carListenImages,
+      })
+      .then(() => {
+        reset();
+        setImage([]);
+      })
+      .catch((e) => {
+        console.log(`Erro ao enviar os dados para o banco: ${e}`)
+      })
+    }
+
+    // Função para carregar as imagens na página
+    async function handleFile(e: ChangeEvent<HTMLInputElement>){
+      if(e.target.files && e.target.files[0]){
+        const image = e.target.files[0]
+        
+        if(image.type === 'image/jpeg' || image.type === 'image/png'){
+          await handleUpload(image)
+        }
+        else{
+          alert('Envie uma imagem jpeg ou png');
+        }
+      }
+    } 
+
+    // Função que vai enviar a imagem ao banco e cadastrá-la
+    async function handleUpload(image: File){
+      if(!user?.uid){
+        return;
+      }
+      
+      const currentUId = user?.uid;
+      const uidImage = uuidV4();
+
+      const uploadRef = ref(storage, `images/${currentUId}/${uidImage}`)
+
+      uploadBytes(uploadRef, image)
+      .then((snapshot)=>{
+        getDownloadURL(snapshot.ref).then((downloadURL)=>{
+          const imageItem = {
+            name: uidImage, 
+            uid: currentUId,
+            previewURL: URL.createObjectURL(image),
+            url: downloadURL
+          }
+
+          setImage((images)=> [...images, imageItem])
+        })
+      })
+    }
+
+    // Função para deletar imagem da página e banco de dados
+    async function handleDeleteImage(item: imageProps){
+      const imagePath = `images/${item.uid}/${item.name}`
+      const imageRef = ref(storage, imagePath);
+
+      try{
+        await deleteObject(imageRef)
+        setImage(image.filter((img) => img.url !== item.url))
+      }
+      catch(e){
+        alert(`Erro ao deletar imagem: ${e}`);
+      }
     }
 
     return (
@@ -54,9 +158,27 @@ export function New() {
                <FiUpload size={30} color='#000' />
               </div>
               <div className='cursor-pointer'>
-                <input className='opacity-0 cursor-pointer' type="file" accept='image/*' />
+                <input 
+                className='opacity-0 cursor-pointer' 
+                type="file" 
+                accept='image/*'
+                onChange={handleFile}  />
               </div>
             </button>
+
+            {image.map( item => (
+              <div 
+              className='w-full h-32 flex items-center justify-center relative'
+              key={item.name} >
+                <button className='absolute' onClick={()=> handleDeleteImage(item)}>
+                  <FiTrash size={28} color='#fff' />
+                </button>
+                <img 
+                className='rounded-lg w-full h-32 object-cover' 
+                src={item.previewURL} 
+                alt='Foto do veículo' />
+              </div>
+            ))}
           </div>
 
           <div className='w-full bg-white p-3 rounded-lg flex flex-col sm:flex-row item-center gap-2 mt-4'>
