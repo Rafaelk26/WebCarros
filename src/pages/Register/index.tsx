@@ -9,6 +9,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'react-hot-toast';
 // Import data from database firebase
 import { auth } from '../../services/index';
 import { createUserWithEmailAndPassword, updateProfile, signOut } from 'firebase/auth';
@@ -56,10 +57,13 @@ export function Register() {
         uid: user.user.uid
       })
 
+      
       nav('/dashboard', { replace: true })
+      toast.success('Registrado com sucesso!');
     })
     .catch((e)=>{
       console.error(`Erro ao cadastrar este usuário: ${e}`);
+      toast.error('Erro ao registrar esse usuário!');
     })
   }
 

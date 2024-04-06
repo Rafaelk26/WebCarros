@@ -9,6 +9,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'react-hot-toast';
 // Import data from database firebase
 import { auth } from '../../services/index';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
@@ -41,10 +42,12 @@ export function Login() {
     signInWithEmailAndPassword(auth, data.email, data.password)
     .then(()=>{
       console.log('Logado com sucesso!')
+      toast.success('Logado com sucesso!');
       nav('/dashboard', { replace: true })
     })
     .catch((e)=>{
       console.log(`Erro ao logar: ${e}`)
+      toast.error('Error ao tentar se logar!');
     })
   }
 

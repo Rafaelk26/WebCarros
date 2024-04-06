@@ -15,6 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { v4 as uuidV4 } from 'uuid';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { addDoc, collection } from 'firebase/firestore'; 
+import { toast } from 'react-hot-toast';
 
   // O schema é um modelo de formulário a ser seguido, nele, será requisitado todas as propriedades do objeto!
   const schema = z.object({
@@ -55,7 +56,7 @@ export function New() {
     function onSubmit(data: FormData){
 
       if(image.length === 0){
-        alert('Insira uma imagem deste veículo!');
+        toast.error('Insira uma imagem deste veículo!');
         return;
       }
 
@@ -68,7 +69,7 @@ export function New() {
       })
 
       addDoc(collection(db, "cars"), {
-        name: data.name,
+        name: data.name.toUpperCase(),
         model: data.model,
         year: data.year,
         city: data.city,
@@ -85,22 +86,24 @@ export function New() {
       .then(() => {
         reset();
         setImage([]);
+        toast.success('Veículo cadastrado com sucesso!');
       })
       .catch((e) => {
-        console.log(`Erro ao enviar os dados para o banco: ${e}`)
+        console.log(`Erro ao enviar os dados para o banco: ${e}`);
+        toast.error('Erro ao cadastrar esse veículo!');
       })
     }
 
     // Função para carregar as imagens na página
     async function handleFile(e: ChangeEvent<HTMLInputElement>){
       if(e.target.files && e.target.files[0]){
-        const image = e.target.files[0]
+        const image = e.target.files[0];
         
         if(image.type === 'image/jpeg' || image.type === 'image/png'){
-          await handleUpload(image)
+          await handleUpload(image);
         }
         else{
-          alert('Envie uma imagem jpeg ou png');
+          toast.error('Envie uma imagem jpeg ou png');
         }
       }
     } 
@@ -141,7 +144,7 @@ export function New() {
         setImage(image.filter((img) => img.url !== item.url))
       }
       catch(e){
-        alert(`Erro ao deletar imagem: ${e}`);
+        toast.error(`Erro ao deletar imagem: ${e}`);
       }
     }
 
